@@ -11,9 +11,7 @@ public class Hangman {
     private HashSet<Integer> usedIndex;
     private String selectedSentence;
     private Character letter;
-    private boolean letterIsPresent;
     private int turn;
-    private boolean thereIsAWinner;
     private String winnerKey;
     private int letterFrequency;
     private int newPoints;
@@ -31,7 +29,6 @@ public class Hangman {
         this.numberOfPlayers = numberOfPlayers;
         this.totalPoints = totalPoints;
         this.turn = 1;
-        this.thereIsAWinner = false;
         this.isTurnOver = false;
     }
 
@@ -39,108 +36,6 @@ public class Hangman {
         createPlayersScoreBoard();
         initiateWordBank();
         generateSentenceToGuess();
-    }
-
-    /**
-     * Manages the game flow, including player turns, scoring, and checking for winners.
-     */
-    public void play() {
-        Scanner input = new Scanner(System.in);
-
-        System.out.println("----------------------------");
-        System.out.println("TURNO: " + turn);
-        System.out.println("LETRAS USADAS: " + usedLetters);
-        System.out.println();
-        showPoints();
-        System.out.println();
-        System.out.println("Categoria: Dichos populares.");
-        System.out.println();
-        showGuessedLetters();
-        System.out.println();
-
-        System.out.println("Ingrese una letra: ");
-        //this.letter = Character.toUpperCase(input.next().charAt(0));
-        //this.letterIsPresent = isLetterPresent(letter);
-
-        //processLetter(letter);
-        // Actions in case the letter is present in the sentence or not.
-        /*if (letterIsPresent && !usedLetters.contains(letter)) {
-            letterFrequency = actionIfLetterIsPresent();
-            showGuessedLetters();
-            if (letterFrequency > 1) {
-                newPoints = 3 * letterFrequency;
-                //System.out.println("Obtuviste " + newPoints + " puntos porque la letra aparece " + letterFrequency + " veces.");
-            } else {
-                newPoints = 3;
-                //System.out.println("Obtuviste 3 puntos porque la letra aparece una vez.");
-            }
-
-            pressEnterToContinue();
-
-            if (!isRoundOver()) {
-                setPlayersPoints(newPoints, this.turn);
-                play();
-                return;
-            }
-
-        } else if (!letterIsPresent && !usedLetters.contains(letter)) {
-            //System.out.println("Perdiste -1 puntos porque la letra no se encuentra.");
-            actionIfLetterIsNotPresent();
-            newPoints = -1;
-        } else {
-            //System.out.println("Perdiste 3 puntos porque la letra ya fue utilizada.");
-            newPoints = -3;
-        }
-
-        setPlayersPoints(newPoints, this.turn);*/
-
-        // Check for a winner.
-        if (!thereIsAWinner) {
-            this.thereIsAWinner = isThereAWinner();
-        }
-
-        if ((playersPoints.get(this.winnerKey) != null) && playersPoints.get(this.winnerKey) < totalPoints) {
-            this.thereIsAWinner = isThereAWinner();
-        }
-
-        // Actions depending on the round status and if there's a game winner.
-        if (!isRoundOver()) {
-            pressEnterToContinue();
-            setNextTurn();
-            //play();
-        } else if (isRoundOver() && !thereIsAWinner ) {
-            System.out.println();
-            showGuessedLetters();
-            newPoints = 5;
-            setPlayersPoints(this.newPoints, this.turn);
-            showPoints();
-            System.out.println();
-
-            if (thereIsAWinner) {
-                System.out.println("Ha ganado el " + winnerKey);
-            } else {
-                System.out.println("Has ganado 5 puntos porque se ha adivinado la palabra. Presione ENTER para comenzar otra ronda.");
-                pressEnterToContinue();
-                this.turn = 1;
-                initializeNewRound();
-                generateSentenceToGuess();
-                //play();
-            }
-        } else if (isRoundOver() && thereIsAWinner) {
-            System.out.println();
-            showGuessedLetters();
-
-            if (Objects.equals(playersPoints.get(winnerKey), playersPoints.get("Jugador " + this.turn))) {
-                newPoints = 5;
-                setPlayersPoints(this.newPoints, this.turn);
-                System.out.println("Has ganado 5 puntos porque se ha adivinado la palabra.");
-
-                pressEnterToContinue();
-            }
-            showPoints();
-            System.out.println("Ha ganado el " + winnerKey);
-            return;
-        }
     }
 
     /**
@@ -182,7 +77,6 @@ public class Hangman {
             System.out.println("Ya se han usado todas las frases del banco de palabras.");
         }
 
-        // Generate a randmom index and validate it hasn't been used before.
         do {
             randomIndex = new Random().nextInt(wordBank.size());
         } while (usedIndex.contains(randomIndex));
@@ -198,35 +92,7 @@ public class Hangman {
     }
 
     /**
-     * Displays the current points of all players.
-     */
-    public void showPoints() {
-        System.out.println("Puntos: ");
-        for (int i = 0; i < numberOfPlayers; i++) {
-            String player = "Jugador " + (i + 1);
-            System.out.print(player + ": " + playersPoints.get(player) + ".  ");
-        }
-    }
-
-    /**
-     * Shows the letters that have been guessed so far and blanks for unguessed letters.
-     */
-    public void showGuessedLetters() {
-        for (int i = 0; i < selectedSentence.length(); i++) {
-            if ((selectedSentence.charAt(i) != ' ') && !guessedLetters.contains(selectedSentence.charAt(i))) {
-                System.out.print("_ ");
-            } else if ((selectedSentence.charAt(i) != ' ') && guessedLetters.contains(selectedSentence.charAt(i)) ) {
-                System.out.print(" " + selectedSentence.charAt(i) + " ");
-            } else {
-                System.out.print("    ");
-            }
-        }
-        System.out.println();
-    }
-
-    /**
      * Checks if the guessed letter is present in the sentence to guess.
-     *
      * @return true if the letter is present, false otherwise.
      */
     public boolean isLetterPresent(Character letter) {
@@ -235,7 +101,6 @@ public class Hangman {
 
     /**
      * Processes the action when the guessed letter is present in the sentence.
-     *
      * @return The frequency of the letter in the sentence.
      */
     public int actionIfLetterIsPresent() {
@@ -253,57 +118,47 @@ public class Hangman {
 
     /**
      * Updates the player's score based on the new points earned during their turn.
-     *
      * @param newPoints The points to be added or subtracted.
      * @param turn The current turn.
      */
     public void setPlayersPoints(int newPoints, int turn) {
         String player = "Jugador " + (turn);
         int currentPoints = playersPoints.get(player);
-        System.out.println("NEW POINTS IN METHOD: " + (currentPoints + newPoints));
-        playersPoints.put(player, currentPoints + newPoints);
+        playersPoints.put(player, currentPoints + this.newPoints);
     }
 
+    /**
+     * Process the used letter to get the points to be added.
+     * @param letter
+     */
     public void processLetter(Character letter) {
-        int newPoints = 0;
+        this.newPoints = 0;
         boolean letterIsPresent = isLetterPresent(letter);
         this.letter = letter;
 
-        System.out.println("LETTER: " + letter);
         if (letterIsPresent && !usedLetters.contains(letter)) {
             letterFrequency = actionIfLetterIsPresent();
-            System.out.println("FREQUENCY: " + letterFrequency);
-            //showGuessedLetters();
             if (letterFrequency > 1) {
                 this.newPoints = 3 * letterFrequency;
-                System.out.println("NEW POINTS: " + this.newPoints);
-                //System.out.println("Obtuviste " + newPoints + " puntos porque la letra aparece " + letterFrequency + " veces.");
             } else {
                 this.newPoints = 3;
-                //System.out.println("Obtuviste 3 puntos porque la letra aparece una vez.");
             }
 
             if (!isRoundOver()) {
                 setPlayersPoints(this.newPoints, this.turn);
-                System.out.println("POINTS: " + getPlayersPoints());
-                //play();
                 return;
             }
 
         } else if (!letterIsPresent && !usedLetters.contains(letter)) {
-            //System.out.println("Perdiste -1 puntos porque la letra no se encuentra.");
             actionIfLetterIsNotPresent();
             this.newPoints = -1;
             this.isTurnOver = true;
         } else {
-            //System.out.println("Perdiste 3 puntos porque la letra ya fue utilizada.");
             this.newPoints = -3;
             this.isTurnOver = true;
         }
 
         setPlayersPoints(this.newPoints, this.turn);
-        System.out.println("PUNTOS SWITCH: " + this.newPoints);
-        System.out.println("POINTS: " + getPlayersPoints());
     }
 
     /**
@@ -319,7 +174,6 @@ public class Hangman {
 
     /**
      * Checks if the round is over by determining if all letters in the sentence have been guessed.
-     *
      * @return true if the round is over, false otherwise.
      */
     public boolean isRoundOver() {
@@ -333,7 +187,6 @@ public class Hangman {
 
     /**
      * Determines if there is a winner by checking if any player's score meets the total points required.
-     *
      * @return true if a winner is found, false otherwise.
      */
     public boolean isThereAWinner() {
@@ -353,72 +206,117 @@ public class Hangman {
     }
 
     /**
-     * Pauses the program execution until the user presses the Enter key.
-     *
-     * This method is used to prompt the user to continue, allowing them to read output or make decisions
-     * before proceeding with the game.
+     * Getter for the selected sentence.
+     * @return the sentence to guess.
      */
-    public void pressEnterToContinue() {
-        Scanner input = new Scanner(System.in);
-        input.nextLine();
-    }
-
     public String getSentenceToGuess() {
         return this.selectedSentence;
     }
 
+    /**
+     * Getter for the used letters.
+     * @return HashSet with the used letters.
+     */
     public HashSet<Character> getUsedLetters() {
         return this.usedLetters;
     }
 
+    /**
+     * Getter for the guessed letters.
+     * @return HashSet with the guessed letters.
+     */
     public HashSet<Character> getGuessedLetters() {
         return this.guessedLetters;
     }
 
+    /**
+     * Getter for the current points of the players.
+     * @return HashMap with all the players points.
+     */
     public HashMap<String, Integer> getPlayersPoints() {
         return this.playersPoints;
     }
 
-    public HashSet<Integer> getUsedIndex() {
-        return this.usedIndex;
-    }
-
+    /**
+     * Getter for the winner key.
+     * @return the winner key of the HashMap.
+     */
     public String getWinnerKey() {
         return this.winnerKey;
     }
 
+    /**
+     * Getter for the total of points to play.
+     * @return the total of points.
+     */
     public int getTotalPoints() {
         return this.totalPoints;
     }
 
+    /**
+     * Getter for the used letter.
+     * @return the used letter.
+     */
+    public Character getUsedLetter() {
+        return this.letter;
+    }
+
+    /**
+     * Getter for the current turn.
+     * @return the current turn.
+     */
     public int getTurn() {
         return this.turn;
     }
 
+    /**
+     * Setter for the turn.
+     * @param turn
+     */
     public void setTurn(int turn) {
         this.turn = turn;
     }
+
+    /**
+     * Getter for isTurnOver.
+     * @return true if the turn is over.
+     */
     public boolean getIsTurnOver() {
         return this.isTurnOver;
     }
 
+    /**
+     * Setter for isTurnOver.
+     * @param isTurnOver
+     */
     public void setIsTurnOver(boolean isTurnOver) {
         this.isTurnOver = isTurnOver;
     }
 
+    /**
+     * Getter for the new points added to the player in turn.
+     * @return the points added.
+     */
     public int getNewPoints()
     {
         return this.newPoints;
     }
 
-    public int getNumberOfPlayers() {
-        return this.numberOfPlayers;
+    /**
+     * Setter for the new points to be added to the player in turn
+     * @param newPoints
+     */
+    public void setNewPoints(int newPoints) {
+        this.newPoints = newPoints;
     }
 
+    /**
+     * Getter for the pointsToString.
+     * @return the points in text form.
+     */
     public String pointsToString() {
         StringBuilder text = new StringBuilder();
         String textToString;
-        System.out.println("cantidad: " + numberOfPlayers);
 
         for (Map.Entry<String, Integer> entry : playersPoints.entrySet()) {
             String player = entry.getKey();

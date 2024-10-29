@@ -18,17 +18,24 @@ public class GUI extends JFrame {
     private boolean letterIsPresent;
     boolean thereIsAWinner;
     private ArrayList<JButton> letterButtons;
-    private JPanel pointsPanel;
-    private JLabel pointsLabel;
     private int numberOfPLayers;
     private int totalOfPoints;
     private JLabel usedLettersLabel;
     private JPanel usedLettersPanel;
+    private JLabel addedPointsLabel;
+    private JPanel labelsPanel;
 
+    /**
+     * Constructor.
+     */
     public GUI() {
         setNumberOfPlayers();
     }
 
+    /**
+     * This method creates a text field to input the total number of players, checks if it's between a
+     * valid range and initializes the GUI.
+     */
     public void setNumberOfPlayers() {
         JFrame inputFrame = new JFrame("Ingrese cantidad de jugadores");
         inputFrame.setSize(350, 130);
@@ -57,7 +64,6 @@ public class GUI extends JFrame {
                     numberOfPLayers = Integer.parseInt(numberOfPlayersInput.getText());
                     totalOfPoints = Integer.parseInt(totalOfPointsInput.getText());
 
-                    // Validación de la cantidad de jugadores.
                     if (numberOfPLayers >= 2 && numberOfPLayers <= 4) {
                         inputFrame.dispose();
                         game = new Hangman(numberOfPLayers, totalOfPoints);
@@ -76,6 +82,9 @@ public class GUI extends JFrame {
         inputFrame.setVisible(true);
     }
 
+    /**
+     * Sets all the initial elements of the GUI and it initializes the game.
+     */
     public void initializeGUI() {
         this.thereIsAWinner = false;
         setTitle("Hangman Game");
@@ -86,40 +95,24 @@ public class GUI extends JFrame {
         // Initialize the current word with underscores
         game.initializeFirstRound();
         this.wordToGuess = game.getSentenceToGuess();
-        System.out.println("TO GUESS: " + this.wordToGuess);
 
-        // Create a container for the keyboard in the lower half of the screen
+        // Container for the keyboard in the lower half of the screen
         keyboardContainer = new JPanel();
         keyboardContainer.setLayout(new BorderLayout());
         keyboardContainer.setPreferredSize(new Dimension(400, 200));
 
+        // Panel and label for the used letters.
         usedLettersLabel = new JLabel();
         usedLettersPanel = new JPanel();
         usedLettersPanel.setLayout(new BorderLayout());
         usedLettersPanel.add(usedLettersLabel);
         letterButtons = new ArrayList<>();
-/*
-        keyboardPanel = new JPanel();
-        keyboardPanel.setLayout(new GridLayout(3, 11, 5, 5));
 
-        // Add letter buttons
-        String letters = "QWERTYUIOPASDFGHJKLZXCVBNM";
-        letterButtons = new ArrayList<>();
-        for (char letter : letters.toCharArray()) {
-            JButton letterButton = new JButton(String.valueOf(letter));
-            letterButtons.add(letterButton);
-            letterButton.setFont(new Font("Arial", Font.BOLD, 16));
-            keyboardPanel.add(letterButton);
-
-            letterButton.addActionListener(e -> {
-                String selectedLetter = letterButton.getText();
-                processLetter(selectedLetter.charAt(0));
-            });
-        }*/
-
+        // Panel for the keyboard buttons.
         keyboardPanel = new JPanel();
         keyboardPanel.setLayout(new GridLayout(3, 1, 5, 5));
 
+        // Creation of the first row panel with the corresponding letters.
         JPanel firstRow = new JPanel(new GridLayout(1, 10, 5, 5));
         String firstRowLetters = "QWERTYUIOP";
         for (char letter : firstRowLetters.toCharArray()) {
@@ -134,6 +127,7 @@ public class GUI extends JFrame {
             });
         }
 
+        // Creation of the second row panel with the corresponding letters.
         JPanel secondRow = new JPanel(new GridLayout(1, 9, 5, 5));
         String secondRowLetters = "ASDFGHJKL";
         for (char letter : secondRowLetters.toCharArray()) {
@@ -148,6 +142,7 @@ public class GUI extends JFrame {
             });
         }
 
+        // Creation of the third row panel with the corresponding letters.
         JPanel thirdRow = new JPanel(new GridLayout(1, 7, 5, 5));
         String thirdRowLetters = "ZXCVBNM";
         for (char letter : thirdRowLetters.toCharArray()) {
@@ -170,20 +165,20 @@ public class GUI extends JFrame {
         keyboardContainer.add(keyboardPanel,  BorderLayout.CENTER);
         add(keyboardContainer, BorderLayout.SOUTH);
 
-        categoryPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        // Panel for the information of the round.
+        labelsPanel = new JPanel(new GridLayout(2, 1));
         categoryLabel = new JLabel();
         categoryLabel.setHorizontalAlignment(SwingConstants.LEFT);
-        categoryLabel.setPreferredSize(new Dimension(500, 30));
-        categoryLabel.setForeground(Color.BLACK); // Color del texto
+        categoryLabel.setForeground(Color.BLACK);
         categoryLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        categoryPanel.add(categoryLabel);
-        add(categoryPanel, BorderLayout.NORTH);
+        labelsPanel.add(categoryLabel);
 
-        categoryLabel.setText("Categoria: Dichos populares.");
+        addedPointsLabel = new JLabel();
+        labelsPanel.add(addedPointsLabel);
 
-        categoryPanel.revalidate();
-        categoryPanel.repaint();
+        add(labelsPanel, BorderLayout.NORTH);
 
+        // Panel and label for the word to guess.
         wordLabel = new JLabel("", SwingConstants.CENTER);
         wordLabel.setLayout(new BorderLayout());
         wordLabel.setFont(new Font("Arial", Font.BOLD, 24));
@@ -193,22 +188,25 @@ public class GUI extends JFrame {
         wordLabelPanel.add(wordLabel, BorderLayout.CENTER);
         add(wordLabelPanel, BorderLayout.CENTER);
 
-        pointsLabel = new JLabel();
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
     }
 
+    /**
+     * Method that sets every round.
+     */
     public void play() {
-        int newPoints = 0;
         currentWord = new StringBuilder();
-        System.out.println("------------------------------");
-        System.out.println("USED LETTERS: " + game.getUsedLetters());
-        System.out.println("SENTENCE TO GUESS: " + game.getSentenceToGuess());
-        System.out.println("GUESSED LETTERS: " + game.getGuessedLetters());
-        System.out.println("------------------------------");
-        showPoints();
+        categoryLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        categoryLabel.setText("Categoria: Dichos populares.                  " + "Turno Jugador " + game.getTurn() + ".");
+        System.out.println("TO GUESS: " + this.wordToGuess);
+        showAddedPoints();
         showUsedLetters();
         showGuessedLetters();
     }
 
+    /**
+     * Method that shows the guessed letters and underscores for the letters to guess.
+     */
     public void showGuessedLetters() {
         currentWord.setLength(0);
 
@@ -227,12 +225,17 @@ public class GUI extends JFrame {
         wordLabelPanel.repaint();
     }
 
+    /**
+     * Method that process the used letter and sets a new turn/round.
+     * @param usedLetter
+     */
     public void processLetter(Character usedLetter) {
-        int newPoints;
         String winnerKey = game.getWinnerKey();
         int turn = game.getTurn();
 
         game.processLetter(usedLetter);
+
+        // Check if the letter is in the sentence.
         this.letterIsPresent = game.isLetterPresent(usedLetter);
         showGuessedLetters();
 
@@ -244,40 +247,33 @@ public class GUI extends JFrame {
             this.thereIsAWinner = game.isThereAWinner();
         }
 
-        switch (game.getNewPoints()) {
-            case -1:
-                JOptionPane.showMessageDialog(null, "Has perdido 1 punto porque la letra no se encuentra.");
-                break;
-            case -3:
-                JOptionPane.showMessageDialog(null, "Has perdido 3 puntos porque la letra ya habia sido utilizada.");
-                break;
-            default:
-                JOptionPane.showMessageDialog(null, "Has ganado " + game.getNewPoints()  + " puntos.");
-        }
+        showAddedPoints();
 
+        // If the player guessed a letter it's their turn again.
         if (!game.isRoundOver() && letterIsPresent && !game.getIsTurnOver()) {
-            System.out.println("ENTRA 1.");
             play();
 
+        // If the didn't guess a letter, update the turn for the next player.
         } else if ((!game.isRoundOver() && !letterIsPresent && game.getIsTurnOver()) || (!game.isRoundOver() && game.getUsedLetters().contains(usedLetter))) {
-            System.out.println("ENTRA 2.");
             game.setNextTurn();
             game.setIsTurnOver(false);
             play();
 
+        // Get new points in case the round is over.
         } else if (game.isRoundOver() && !this.thereIsAWinner) {
-            newPoints = 5;
-            game.setPlayersPoints(newPoints, game.getTurn());
+            game.setNewPoints(game.getNewPoints() + 5);
+            game.setPlayersPoints(game.getNewPoints(), game.getTurn());
 
-            System.out.println("ENTRA...");
             if (game.isThereAWinner()) {
-                showPoints();
+                showAddedPoints();
                 JOptionPane.showMessageDialog(null, "Ha ganado el " + game.getWinnerKey());
                 showUsedLetters();
                 System.exit(0);
             } else {
-                JOptionPane.showMessageDialog(null, "Has ganado 5 puntos porque adivinaste la palabra.");
-                game.setTurn(1);
+                showAddedPoints();
+                JOptionPane.showMessageDialog(null, "Has ganado " + game.getNewPoints() + " puntos por adivinar la ultima letra y la palabra.");
+                game.setNewPoints(0);
+                //game.setTurn(1);
                 game.initializeNewRound();
                 game.generateSentenceToGuess();
                 this.wordToGuess = game.getSentenceToGuess();
@@ -285,15 +281,14 @@ public class GUI extends JFrame {
             }
         } else if (game.isRoundOver() && this.thereIsAWinner) {
             showGuessedLetters();
-            System.out.println("ENTRA");
 
             if (Objects.equals(game.getPlayersPoints().get(winnerKey), game.getPlayersPoints().get("Jugador " + turn))) {
-                newPoints = 5;
-                game.setPlayersPoints(newPoints, turn);
-                JOptionPane.showMessageDialog(null, "Has ganado 5 puntos porque adivinaste la palabra.");
+                game.setNewPoints(game.getNewPoints() + 5);
+                game.setPlayersPoints(game.getNewPoints(), game.getTurn());
+                showAddedPoints();
             }
 
-            showPoints();
+            showAddedPoints();
             showUsedLetters();
             JOptionPane.showMessageDialog(null, "Ha ganado el " + game.getWinnerKey());
             System.exit(0);
@@ -301,23 +296,42 @@ public class GUI extends JFrame {
         }
     }
 
-    public void showPoints() {
-        pointsLabel.setHorizontalAlignment(SwingConstants.LEFT);
-        pointsLabel.setPreferredSize(new Dimension(700, 30));
-        pointsLabel.setForeground(Color.BLACK);
-        pointsLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        categoryPanel.add(pointsLabel);
-
-        pointsLabel.setText(game.pointsToString());
-        categoryPanel.revalidate();
-        categoryPanel.repaint();
-    }
-
+    /**
+     * Method that shows the used letters in a label.
+     */
     public void showUsedLetters() {
-        System.out.println("USED: " + game.getUsedLetters());
         usedLettersLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         usedLettersLabel.setText("LETRAS USADAS: " + game.getUsedLetters().toString());
         keyboardContainer.revalidate();
         keyboardContainer.repaint();
+    }
+
+    /**
+     * Method that shows the players points in a label.
+     */
+    public void showAddedPoints() {
+        addedPointsLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        addedPointsLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        addedPointsLabel.setForeground(Color.BLACK);
+        addedPointsLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        labelsPanel.add(addedPointsLabel);
+
+        // Show a message according to the points added.
+        switch(game.getNewPoints()) {
+            case 0:
+                addedPointsLabel.setText(game.pointsToString());
+                break;
+            case -1:
+                addedPointsLabel.setText(game.pointsToString() + "        Has perdido 1 punto porque la letra no se encuentra.");
+                break;
+            case -3:
+                addedPointsLabel.setText(game.pointsToString() + "        Has perdido 3 puntos porque la letra " + game.getUsedLetter() + " ya habia sido utilizada.");
+                break;
+            case 5:
+                addedPointsLabel.setText(game.pointsToString() + "        Has ganado 5 puntos porque adivinaste la palabra.");
+            default:
+                addedPointsLabel.setText(game.pointsToString() + "        Has ganado " + game.getNewPoints() + " puntos.");
+                break;
+        }
     }
 }
